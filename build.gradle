@@ -1,0 +1,10 @@
+apply plugin: 'idea'
+//and standard one
+apply plugin: 'java'
+
+
+mainClassName = 'urlshortener.bangladeshgreen.Application'
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.112'
+}
