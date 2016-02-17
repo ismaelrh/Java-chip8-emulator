@@ -1,15 +1,92 @@
 package chip8;
 
-import org.jcp.xml.dsig.internal.MacOutputStream;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-
 /**
  * Created by ismaro3 on 17/02/16.
  */
 public class Instructions {
 
+
+    /**
+     * 00EE - RET
+     * Return from a subroutine.
+     * The interpreter sets the program counter to the address at the top of the stack,
+     * then subtracts 1 from the stack pointer
+     */
+    public static void ret(){
+
+        RegisterBank.PC = Memory.stack[RegisterBank.SP]; //PC = address at top of stack
+        RegisterBank.SP = (byte)(RegisterBank.SP - 0x01);
+
+
+    }
+
+    /**
+     *  1nnn - JP addr
+     *  Jump to location nnn.
+     *  The interpreter sets the program counter to nnn.
+     *  Most-significant 4 bits are set to 0
+     */
+    public static void jp(short address){
+
+      RegisterBank.PC = (short) (address & 0x0FFF);
+
+
+    }
+
+    /**
+     *  2nnn - CALL addr
+     *  Call subroutine at nnn.
+     *  The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
+     */
+    public static void call(short addr){
+
+        RegisterBank.SP = (byte)(RegisterBank.SP + (byte)0x01); //Increment SP
+        Memory.stack[RegisterBank.SP] = RegisterBank.PC; //Put the current PC on the top of the stack.
+        RegisterBank.PC = addr; //The PC is set to addr.
+
+
+    }
+
+
+    /**
+     *  3xkk - SE Vx, byte
+     *  Skip next instruction if Vx = kk.
+     *  The interpreter compares register Vx to kk, and if they are equal, increments the program counter by 2
+     *  (Remember that each instruction is 2 bytes long).
+     */
+    public static void seByte(byte x, byte kk){
+
+        if(RegisterBank.V[x]==kk){
+            RegisterBank.PC = (short)(RegisterBank.PC + (short)0x0002);
+        }
+
+    }
+
+    /**
+     * 4xkk - SNE Vx, byte
+     * Skip next instruction if Vx != kk.
+     * The interpreter compares register Vx to kk, and if they are not equal, increments the program counter by 2.
+     */
+    public static void sneByte(byte x, byte kk){
+
+        if(RegisterBank.V[x]!=kk){
+            RegisterBank.PC = (short)(RegisterBank.PC + (short)0x0002);
+        }
+
+    }
+
+    /**
+     * 5xy0 - SE Vx, Vy
+     * Skip next instruction if Vx = Vy.
+     *  The interpreter compares register Vx to register Vy, and if they are equal, increments the program counter by 2.
+     */
+    public static void seRegister(byte x, byte y){
+
+        if(RegisterBank.V[x]==RegisterBank.V[y]){
+            RegisterBank.PC = (short)(RegisterBank.PC + (short)0x0002);
+        }
+
+    }
 
     /**
      * 6xkk - LD Vx, byte
@@ -143,8 +220,6 @@ public class Instructions {
         byte leastSignificant = (byte)(RegisterBank.V[x] & (byte)0x01);
         RegisterBank.V[0xF] = leastSignificant; //Set VF to the least significant bit of Vx before the shift.
 
-        RegisterBank.printRegisters();
-
         //We have to cast it to unsigned int to work properly. If we don't do it, Bitwise operation does the cast
         //with sign, so the result is incorrect.
         int int_vx = (RegisterBank.V[x]&0xFF);
@@ -188,7 +263,11 @@ public class Instructions {
      */
     public static void shl(byte x){
 
-        byte mostSignificant = (byte)(RegisterBank.V[x] & (byte)0x08);
+        byte mostSignificant = (byte)(RegisterBank.V[x] & 0x80);
+        if(mostSignificant!=0){
+            //If 0x10000000 -> set to 0x01
+            mostSignificant = (byte)0x01;
+        }
         RegisterBank.V[0xF] = mostSignificant; //Set VF to the least significant bit of Vx before the shift.
 
         RegisterBank.printRegisters();
@@ -202,6 +281,20 @@ public class Instructions {
 
     }
 
+
+    /**
+     *  9xy0 - SNE Vx, Vy
+     *  Skip next instruction if Vx != Vy.
+     *
+     *  The values of Vx and Vy are compared, and if they are not equal, the program counter is increased by 2.
+     */
+    public static void sneRegister(byte x, byte y){
+
+        if(RegisterBank.V[x]!=RegisterBank.V[y]){
+            RegisterBank.PC = (short)(RegisterBank.PC + (short)0x0002);
+        }
+
+    }
 
 
 

@@ -10,6 +10,171 @@ public class InstructionsTests {
 
 
     /**
+     * 00EE - RET
+     * Return from a subroutine.
+     * The interpreter sets the program counter to the address at the top of the stack,
+     * then subtracts 1 from the stack pointer
+     */
+    @Test
+    public  void ret(){
+
+        //Add some value to stack
+        Memory.stack[0x00] = (byte) 0xBEBA;
+        Memory.stack[0x01] = (byte) 0xCAFE;
+
+        //Set stack top
+        RegisterBank.SP = (byte)0x01;
+
+        Instructions.ret();
+
+        assertEquals((byte)0xCAFE,RegisterBank.PC); //PC = previous top of stack
+        assertEquals((byte)0x00,RegisterBank.SP); //SP has been decreased
+
+    }
+
+    /**
+     *  1nnn - JP addr
+     *  Jump to location nnn.
+     *  The interpreter sets the program counter to nnn.
+     *  Most-significant 4 bits are set to 0
+     */
+    @Test
+    public void jp(){
+
+        //Check that works
+        Instructions.jp((short)0x0BEB);
+        assertEquals((short)0x0BEB,RegisterBank.PC);
+
+        //Check that 4 most-significant bits are set to 0
+        Instructions.jp((short)0xFBEB);
+        assertEquals((short)0x0BEB,RegisterBank.PC);
+
+
+
+    }
+
+
+
+    /**
+     *  2nnn - CALL addr
+     *  Call subroutine at nnn.
+     *  The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
+     */
+    @Test
+    public void call(){
+
+
+        RegisterBank.SP = (byte)0x00; //Set stack pointer to 0x00 before testing
+        RegisterBank.PC = (short) 0x0DAD; //Set SP to 0xDAD before testing.
+        short subroutine_addr = 0x0BEB;
+
+        Instructions.call(subroutine_addr);
+
+        assertEquals((byte)0x01,RegisterBank.SP); //SP is incremented
+        assertEquals((short)0x0DAD,Memory.stack[RegisterBank.SP]); //Previous PC is on top of the stack
+        assertEquals((short)0x0BEB,RegisterBank.PC); //PC is set to 0x0BEB
+
+
+
+    }
+
+
+
+    /**
+     *  3xkk - SE Vx, byte
+     *  Skip next instruction if Vx = kk.
+     *  The interpreter compares register Vx to kk, and if they are equal, increments the program counter by 2
+     *  (Remember that each instruction is 2 bytes long).
+     */
+    @Test
+    public void seByte(){
+
+        //Test that skips if V0 = byte (0xDA)
+
+        RegisterBank.PC = 0x00; //PC = 0x00 before testing
+        RegisterBank.V[0x0] = (byte) 0xDA; //Set V0 to 0xDA
+
+        Instructions.seByte((byte)0x0,(byte)0xDA);
+
+        assertEquals((short)0x02,RegisterBank.PC); //Check that PC has been increased by 2.
+
+        //Test that not skips if V0 != byte
+
+        RegisterBank.PC = 0x00; //PC = 0x00 before testing
+        RegisterBank.V[0x0] = (byte) 0xDA; //Set V0 to 0xDA
+
+        Instructions.seByte((byte)0x0,(byte)0xDD); //0xDA != 0xDD
+
+        assertEquals((short)0x00,RegisterBank.PC); //Check that PC has not been increased.
+
+
+
+
+    }
+
+    /**
+     * 4xkk - SNE Vx, byte
+     * Skip next instruction if Vx != kk.
+     * The interpreter compares register Vx to kk, and if they are not equal, increments the program counter by 2.
+     */
+    @Test
+    public void sneByte(){
+
+        //Test that not skips if V0 = byte (0xDA)
+
+        RegisterBank.PC = 0x00; //PC = 0x00 before testing
+        RegisterBank.V[0x0] = (byte) 0xDA; //Set V0 to 0xDA
+
+        Instructions.sneByte((byte)0x0,(byte)0xDA);
+
+        assertEquals((short)0x00,RegisterBank.PC); //Check that PC has been increased by 2.
+
+        //Test that  skips if V0 != byte
+
+        RegisterBank.PC = 0x00; //PC = 0x00 before testing
+        RegisterBank.V[0x0] = (byte) 0xDA; //Set V0 to 0xDA
+
+        Instructions.sneByte((byte)0x0,(byte)0xDD); //0xDA != 0xDD
+
+        assertEquals((short)0x02,RegisterBank.PC); //Check that PC has not been increased.
+
+
+    }
+
+
+
+
+
+    /**
+     * 5xy0 - SE Vx, Vy
+     * Skip next instruction if Vx = Vy.
+     *  The interpreter compares register Vx to register Vy, and if they are equal, increments the program counter by 2.
+     */
+    @Test
+    public void seRegister(){
+
+        //Test that skips if V0 = V1 (0xDA)
+
+        RegisterBank.PC = 0x00; //PC = 0x00 before testing
+        RegisterBank.V[0x0] = (byte) 0xDA; //Set V0 to 0xDA
+        RegisterBank.V[0x1] = (byte) 0xDA; //Set V1 to 0xDA
+
+        Instructions.seRegister((byte)0x0,(byte)0x01);
+
+        assertEquals((short)0x02,RegisterBank.PC); //Check that PC has been increased by 2.
+
+        //Test that not skips if V0 != V1
+
+        RegisterBank.PC = 0x00; //PC = 0x00 before testing
+        RegisterBank.V[0x0] = (byte) 0xDA; //Set V0 to 0xDA
+        RegisterBank.V[0x1] = (byte) 0xDD; //Set V1 to 0xDD
+
+        Instructions.seRegister((byte)0x0,(byte)0x01); //0xDA != 0xDD
+
+        assertEquals((short)0x00,RegisterBank.PC); //Check that PC has not been increased.
+
+    }
+    /**
      * 6xkk - LD Vx, byte
      * Set Vx = kk.
      * The interpreter puts the value kk into register Vx.
@@ -295,6 +460,7 @@ public class InstructionsTests {
      * If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. Then Vx is multiplied by 2.
      */
 
+    @Test
     public void shl(){
 
         //0xFF SHL 1 = 0xFE and VF = 1
@@ -302,7 +468,7 @@ public class InstructionsTests {
 
         Instructions.shl((byte)0x0);
 
-        assertEquals((byte)0x7F,RegisterBank.V[0x0]); //Vx = 0xFE
+        assertEquals((byte)0xFE,RegisterBank.V[0x0]); //Vx = 0xFE
         assertEquals((byte)0x01,RegisterBank.V[0xF]); //Vf = 0x01
 
 
@@ -312,10 +478,44 @@ public class InstructionsTests {
         Instructions.shl((byte)0x0);
 
         assertEquals((byte)0xFE,RegisterBank.V[0x0]); //Vx = 0xFE
-        assertEquals((byte)0x01,RegisterBank.V[0x0]); //Vf = 0x01
+        assertEquals((byte)0x00,RegisterBank.V[0xF]); //Vf = 0x00
 
 
     }
+
+
+    /**
+     *  9xy0 - SNE Vx, Vy
+     *  Skip next instruction if Vx != Vy.
+     *
+     *  The values of Vx and Vy are compared, and if they are not equal, the program counter is increased by 2.
+     */
+    @Test
+    public void sneRegister(){
+
+        //Test that not skips if V0 = V1 (0xDA)
+
+        RegisterBank.PC = 0x00; //PC = 0x00 before testing
+        RegisterBank.V[0x0] = (byte) 0xDA; //Set V0 to 0xDA
+        RegisterBank.V[0x1] = (byte) 0xDA; //Set V1 to 0xDA
+
+        Instructions.sneRegister((byte)0x0,(byte)0x01);
+
+        assertEquals((short)0x00,RegisterBank.PC); //Check that PC has been increased by 2.
+
+        //Test that  skips if V0 != V1
+        RegisterBank.PC = 0x00; //PC = 0x00 before testing
+        RegisterBank.V[0x0] = (byte) 0xDA; //Set V0 to 0xDA
+        RegisterBank.V[0x1] = (byte) 0xDD; //Set V1 to 0xDD
+
+        Instructions.sneRegister((byte)0x0,(byte)0x01); //0xDA != 0xDD
+
+        assertEquals((short)0x02,RegisterBank.PC); //Check that PC has not been increased.
+
+    }
+
+
+
 
 
 

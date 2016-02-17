@@ -9,7 +9,13 @@ public class RegisterBank {
     public static byte[] V = new byte[16];
 
     //I register, a 16-bit register used for storing memory addresses.
-    public static byte I;
+    public static byte I = 0x00;
+
+    //PC, program counter. 16 bit (2 byte)
+    public static short PC = 0x0000;
+
+    //SP, stack pointer. 8 bit (1 byte)
+    public static byte SP = 0x00; //todo: Where does the stack start
 
     //todo: specific purpose registers and PC,SP
 

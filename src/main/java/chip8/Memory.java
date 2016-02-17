@@ -8,6 +8,7 @@ public class Memory {
 
     private static byte[] memory = new byte[4096]; //4KB of memory
 
+    public static short[] stack = new short[16]; //Stack, 16 16-bit values
 
     /**
      * Returns the content of a memory address
