@@ -1,6 +1,10 @@
 package chip8;
 
+import org.junit.Test;
+
 import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
 
 
 /**
@@ -12,7 +16,23 @@ public class Instructions {
 
 
 
+
     private static Random random = new Random();
+
+    /**
+     * 00E0 - CLS
+     *
+     * Clear the display.
+     */
+    public static void cls(){
+
+        for(int x = 0; x < 64; x++){
+            for(int y = 0; y < 32; y++){
+                ScreenMemory.pixels[x][y] = false;
+            }
+        }
+
+    }
     /**
      * 00EE - RET
      * Return from a subroutine.
@@ -277,7 +297,6 @@ public class Instructions {
         }
         RegisterBank.V[0xF] = mostSignificant; //Set VF to the least significant bit of Vx before the shift.
 
-        RegisterBank.printRegisters();
 
         //We have to cast it to unsigned int to work properly. If we don't do it, Bitwise operation does the cast
         //with sign, so the result is incorrect.
@@ -363,6 +382,180 @@ public class Instructions {
     }
 
 
+    /**
+     *  Fx07 - LD Vx, DT
+     *   Set Vx = delay timer value.
+     *
+     *   The value of DT is placed into Vx.
+     */
+    public static void loadDTOnRegister(byte x){
+
+
+        RegisterBank.V[x] = RegisterBank.DT;
+    }
+
+
+    /**
+     *   Fx15 - LD DT, Vx
+     *   Set delay timer = Vx.
+     *
+     *   DT is set equal to the value of Vx.
+     */
+    public static void loadRegisterOnDT(byte x){
+        RegisterBank.DT = RegisterBank.V[x];
+    }
+
+
+
+    /**
+     * Fx18 - LD ST, Vx
+     * Set sound timer = Vx.
+     *
+     * ST is set equal to the value of Vx.
+     */
+    public static void loadRegisterOnST(byte x){
+        RegisterBank.ST = RegisterBank.V[x];
+    }
+
+
+    /**
+     * Fx1E - ADD I, Vx
+     * Set I = I + Vx.
+     *
+     * The values of I and Vx are added, and the results are stored in I.
+     */
+    //TODO: warning, do we have to clear the most significats 4 bits of I? They are not used... Now I don't do it.
+    public static void addToI(byte x){
+
+        int int_vx = RegisterBank.V[x] & 0xFF; //Unsigned
+        int int_i = RegisterBank.I & 0xFFFF; //Unsigned
+
+        RegisterBank.I = (short)(int_vx + int_i);
+
+    }
+
+    /**
+     *  Fx29 - LD F, Vx
+     *  Set I = location of sprite for digit Vx.
+     *
+     *  The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
+     *
+     */
+    public static void loadHexadecimalSpriteOnI(byte x){
+
+
+        RegisterBank.I = (short) (ScreenMemory.hexadecimalSpritesStartAddress + 5*RegisterBank.V[x]);
+
+
+    }
+
+    /**
+     *  Fx33 - LD B, Vx
+     *   Store BCD representation of Vx in memory locations I, I+1, and I+2.
+     *
+     *   The interpreter takes the decimal value of Vx, and places the hundreds digit in memory at location in I,
+     *   the tens digit at location I+1, and the ones digit at location I+2.
+     */
+    public static void loadBCDtoMemory(byte x, short startMemoryAddr){
+
+        int int_vx = RegisterBank.V[x] & 0xff; //Get unsigned int from register Vx
+
+        int hundreds = int_vx / 100; //Calculate hundreds
+        int_vx = int_vx - hundreds*100;
+
+        int tens = int_vx/10; //Calculate tens
+        int_vx = int_vx - tens*10;
+
+        int units = int_vx; //Calculate units
+
+        Memory.set(startMemoryAddr,(byte)hundreds);
+        Memory.set((short)(startMemoryAddr+1),(byte)tens);
+        Memory.set((short)(startMemoryAddr+2),(byte)units);
+
+
+    }
+
+    /**
+     *  Fx55 - LD [I], Vx
+     *  Store registers V0 through Vx in memory starting at location I.
+     *
+     *  The interpreter copies the values of registers V0 through Vx into memory, starting at the address in I.
+     *
+     */
+    public static void loadRegisterSequenceToMemory(byte x, short startAddress){
+
+        for(byte reg = 0; reg <= x; reg++){
+            Memory.set((short)(startAddress+reg),RegisterBank.V[reg]);
+        }
+
+    }
+
+
+    /**
+     *   Fx65 - LD Vx, [I]
+     *   Read registers V0 through Vx from memory starting at location I.
+     *
+     *   The interpreter reads values from memory starting at location I into registers V0 through Vx.
+     */
+    public static void loadMemorySequenceToRegister(byte x, short startAddress){
+
+        for(byte reg = 0; reg <= x; reg++){
+            RegisterBank.V[reg] = Memory.get((short)(startAddress+reg));
+        }
+    }
+
+
+
+    /**
+     * Dxyn - DRW Vx, Vy, nibble [only used 4 less significant bytes]
+     * Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+     *
+     * The interpreter reads n bytes from memory, starting at the address stored in I. These bytes are then displayed as
+     * sprites on screen at coordinates (Vx, Vy). Sprites are XORed onto the existing screen.
+     * If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0. If the sprite is
+     * positioned so part of it is outside the coordinates of the display, it wraps around to the opposite side of the
+     * screen. See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information on the
+     * Chip-8 screen and sprites.
+     */
+    public static void draw(byte x, byte y, byte nibble){
+
+        byte readBytes = 0;
+
+
+        byte vf = (byte)0x0;
+        while(readBytes < nibble){
+
+            byte currentByte = Memory.get((short)(RegisterBank.I +readBytes)); //Read one byte
+            for(int i = 0; i <=7; i++){
+                    //For every pixel
+
+                    //Calculate real coordinate
+                    int real_x = (RegisterBank.V[x] + i)%64;
+                    int real_y = (RegisterBank.V[y] + readBytes)%32;
+
+                    boolean previousPixel = ScreenMemory.pixels[real_x][real_y]; //Previous value of pixel
+                    boolean newPixel = previousPixel ^ isBitSet(currentByte,7-i); //XOR
+
+                    ScreenMemory.pixels[real_x][real_y] = newPixel;
+
+                    if(previousPixel == true && newPixel == false){
+                        //A pixel has been erased
+                        vf = (byte)0x01;
+                    }
+
+            }
+
+            RegisterBank.V[0xF] = vf; //Set Vf. Will be 1 if a pixel has been erased
+            readBytes++;
+        }
+
+    }
+
+
+    private static Boolean isBitSet(byte b, int bit)
+    {
+        return (b & (1 << bit)) != 0;
+    }
 
 
 }

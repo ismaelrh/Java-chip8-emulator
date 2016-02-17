@@ -17,6 +17,15 @@ public class RegisterBank {
     //SP, stack pointer. 8 bit (1 byte)
     public static byte SP = 0x00; //todo: Where does the stack start
 
+    //DT, delay timer. 8 bit (1 byte)
+    public static byte DT = 0x00;
+
+
+    //ST, sound timer. 8 bit (1 byte)
+    public static byte ST = 0x00;
+
+
+
     //todo: specific purpose registers and PC,SP
 
 
@@ -27,6 +36,8 @@ public class RegisterBank {
         for(int i = 0; i < 16; i++){
             System.out.println(String.format("V%01X:    %01X",i,V[i]));
         }
+
+        System.out.println(String.format("I:       %01X",I));
 
 
     }

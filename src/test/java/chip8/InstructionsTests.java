@@ -3,12 +3,42 @@ package chip8;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Created by ismaro3 on 17/02/16.
  */
 public class InstructionsTests {
 
 
+    /**
+     * 00E0 - CLS
+     *
+     * Clear the display.
+     */
+    @Test
+    public void cls(){
+        //First, fill the screen
+        for(int x = 0; x < 64; x++){
+            for(int y = 0; y < 32; y++){
+                ScreenMemory.pixels[x][y] = true;
+            }
+        }
+
+        Instructions.cls();
+
+        boolean orOfPixels = false;
+        for(int x = 0; x < 64; x++){
+            for(int y = 0; y < 32; y++){
+                orOfPixels = orOfPixels |  ScreenMemory.pixels[x][y];
+            }
+        }
+
+        assertEquals(false,orOfPixels);
+
+
+
+    }
     /**
      * 00EE - RET
      * Return from a subroutine.
@@ -52,6 +82,7 @@ public class InstructionsTests {
 
 
     }
+
 
 
 
@@ -557,6 +588,7 @@ public class InstructionsTests {
      * The interpreter generates a random number from 0 to 255, which is then ANDed with the value kk.
      * The results are stored in Vx. See instruction 8xy2 for more information on AND.
      */
+    @Test
     public void rnd(){
 
         Instructions.randomEnabled = false;
@@ -572,10 +604,294 @@ public class InstructionsTests {
 
     }
 
+    /**
+     *  Fx07 - LD Vx, DT
+     *   Set Vx = delay timer value.
+     *
+     *   The value of DT is placed into Vx.
+     */
+    @Test
+    public void loadDTOnRegister(){
+
+        RegisterBank.DT = (byte)0xDD;
+
+        Instructions.loadDTOnRegister((byte)0x0);
+
+        assertEquals((byte)0xDD,RegisterBank.V[0]);
+    }
+
+
+
+    /**
+     *   Fx15 - LD DT, Vx
+     *   Set delay timer = Vx.
+     *
+     *   DT is set equal to the value of Vx.
+     */
+    @Test
+    public void loadRegisterOnDT(){
+        RegisterBank.V[0x0] = (byte)0xDD;
+
+        Instructions.loadRegisterOnDT((byte)0x0);
+
+        assertEquals((byte)0xDD,RegisterBank.DT);
+    }
+
+
+    /**
+     * Fx18 - LD ST, Vx
+     * Set sound timer = Vx.
+     *
+     * ST is set equal to the value of Vx.
+     */
+    @Test
+    public void loadRegisterOnST(){
+        RegisterBank.V[0x0] = (byte)0xDD;
+
+        Instructions.loadRegisterOnST((byte)0x0);
+
+        assertEquals((byte)0xDD,RegisterBank.ST);
+
+    }
+
+
+    /**
+     * Fx1E - ADD I, Vx
+     * Set I = I + Vx.
+     *
+     * The values of I and Vx are added, and the results are stored in I.
+     */
+    @Test
+    public void addToI(){
+
+        //Check 0x10 + 0x0F = 0x1F
+        RegisterBank.I = 0x10;
+        RegisterBank.V[0x0] = 0x0F;
+
+        Instructions.addToI((byte)0x0);
+
+        assertEquals((short)0x1F,RegisterBank.I);
+
+        //Check 0xFF0 + 0x1 = 0xFF1
+        RegisterBank.I = 0xFF0;
+        RegisterBank.V[0x0] = 0x01;
+
+        Instructions.addToI((byte)0x0);
+
+        assertEquals((short)0xFF1,RegisterBank.I);
+
+        //Check 0xFF0 + 0x10 = 0x000
+        RegisterBank.I = 0xFF0;
+        RegisterBank.V[0x0] = 0x10;
+
+        Instructions.addToI((byte)0x0);
+
+        assertEquals((short)0x1000,RegisterBank.I);
+
+    }
+
+
+
+    /**
+     *  Fx29 - LD F, Vx
+     *  Set I = location of sprite for digit Vx.
+     *
+     *  The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
+     *
+     */
+    @Test
+    public void loadHexadecimalSpriteOnI(){
+
+        ScreenMemory.loadDefaultSpritesOnMemory();
+
+        RegisterBank.V[0] = (byte)0xB;
+
+        Instructions.loadHexadecimalSpriteOnI((byte)0x0);
+
+        assertEquals((short)(ScreenMemory.hexadecimalSpritesStartAddress +0x00B*5),RegisterBank.I);
+
+
+
+    }
+
+
+    /**
+     *  Fx33 - LD B, Vx
+     *   Store BCD representation of Vx in memory locations I, I+1, and I+2.
+     *
+     *   The interpreter takes the decimal value of Vx, and places the hundreds digit in memory at location in I,
+     *   the tens digit at location I+1, and the ones digit at location I+2.
+     */
+    @Test
+    public void loadBCDtoMemory(){
+
+        //Try with 123
+        RegisterBank.V[0x0] = (byte)123; //Store 123 in register
+        short startMemoryAddr = (short)0x0200;
+
+        Instructions.loadBCDtoMemory((byte)0x0,startMemoryAddr);
+
+        assertEquals((byte)0x01,Memory.get(startMemoryAddr));
+        assertEquals((byte)0x02,Memory.get((short)(startMemoryAddr+1)));
+        assertEquals((byte)0x03,Memory.get((short)(startMemoryAddr+2)));
+
+        //Try with 010
+        RegisterBank.V[0x0] = (byte)10; //Store 123 in register
+        startMemoryAddr = (short)0x0200;
+
+        Instructions.loadBCDtoMemory((byte)0x0,startMemoryAddr);
+
+        assertEquals((byte)0x00,Memory.get(startMemoryAddr));
+        assertEquals((byte)0x01,Memory.get((short)(startMemoryAddr+1)));
+        assertEquals((byte)0x00,Memory.get((short)(startMemoryAddr+2)));
+
+
+    }
+
+
+
+    /**
+     *  Fx55 - LD [I], Vx
+     *  Store registers V0 through Vx in memory starting at location I.
+     *
+     *  The interpreter copies the values of registers V0 through Vx into memory, starting at the address in I.
+     *
+     */
+    @Test
+    public void loadRegisterSequenceToMemory(){
+
+        //Vx = x, where x = [0,F]
+        for(byte pos = 0x0; pos <= 0xF; pos++){
+            RegisterBank.V[pos] = pos;
+        }
+
+        short memoryAddress = 0x200;
+
+        Instructions.loadRegisterSequenceToMemory((byte)0xF,memoryAddress);
+
+        for(byte pos = 0x0; pos <= 0xF; pos++){
+            assertEquals((byte)pos,Memory.get((short)(memoryAddress+pos)));
+        }
+
+    }
+
+
+
+    /**
+     *   Fx65 - LD Vx, [I]
+     *   Read registers V0 through Vx from memory starting at location I.
+     *
+     *   The interpreter reads values from memory starting at location I into registers V0 through Vx.
+     */
+    @Test
+    public void loadMemorySequenceToRegister(){
+
+
+        short memoryAddress = 0x200;
+        //MEM[200+x] = x, where x = [0,F]
+        for(byte pos = 0x0; pos <= 0xF; pos++){
+            Memory.set((short)(memoryAddress+pos),pos);
+        }
+
+        Instructions.loadMemorySequenceToRegister((byte)0xF,memoryAddress);
+
+        for(byte pos = 0x0; pos <= 0xF; pos++){
+            assertEquals(pos,RegisterBank.V[pos]);
+        }
+
+
+
+    }
 
 
 
 
+    /**
+     * Dxyn - DRW Vx, Vy, nibble
+     * Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+     *
+     * The interpreter reads n bytes from memory, starting at the address stored in I. These bytes are then displayed as
+     * sprites on screen at coordinates (Vx, Vy). Sprites are XORed onto the existing screen.
+     * If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0. If the sprite is
+     * positioned so part of it is outside the coordinates of the display, it wraps around to the opposite side of the
+     * screen. See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information on the
+     * Chip-8 screen and sprites.
+     */
+    @Test
+    public void draw(){
+
+        ScreenMemory.loadDefaultSpritesOnMemory();
+
+
+        //1.- Check A on (10,10) -> draw and Vf = 0
+        //Pass address of A hexadecimal character to I
+        RegisterBank.V[0x0] = (byte)0xA; //Character to draw
+        RegisterBank.V[0x1] = (byte)0xA; //x=10
+        RegisterBank.V[0x2] = (byte)0xA; //y=10
+        Instructions.loadHexadecimalSpriteOnI((byte)0x00);
+
+        //Draw character A in (10,10)
+        Instructions.draw((byte)0x1,(byte)0x2,(byte)0x5);
+
+        assertTrue(isSameByte((byte)0xF0,10,10));
+        assertTrue(isSameByte((byte)0x90,10,11));
+        assertTrue(isSameByte((byte)0xF0,10,12));
+        assertTrue(isSameByte((byte)0x90,10,13));
+        assertTrue(isSameByte((byte)0x90,10,14));
+
+        assertEquals((byte)0x0,RegisterBank.V[(byte)0xF]);
+
+        //2.- Check second A on (10,10) -> erased and Vf = 1 (it is erased)
+        //Pass address of A hexadecimal character to I
+
+        //Draw character A in (10,10)
+        Instructions.draw((byte)0x1,(byte)0x2,(byte)0x5);
+
+        assertTrue(isSameByte((byte)0x00,10,10));
+        assertTrue(isSameByte((byte)0x00,10,11));
+        assertTrue(isSameByte((byte)0x00,10,12));
+        assertTrue(isSameByte((byte)0x00,10,13));
+        assertTrue(isSameByte((byte)0x00,10,14));
+
+        assertEquals((byte)0x1,RegisterBank.V[(byte)0xF]);
+
+
+        //1.- Check A on (62,0) -> draw and Vf = 0, but overflows to other side
+        //Pass address of A hexadecimal character to I
+        RegisterBank.V[0x1] = (byte)62; //x=10
+        RegisterBank.V[0x2] = (byte)0x0; //y=0
+
+        //Draw character A in (10,10)
+        Instructions.draw((byte)0x1,(byte)0x2,(byte)0x5);
+
+        assertTrue(isSameByte((byte)0xF0,62,0));
+        assertTrue(isSameByte((byte)0x90,62,1));
+        assertTrue(isSameByte((byte)0xF0,62,2));
+        assertTrue(isSameByte((byte)0x90,62,3));
+        assertTrue(isSameByte((byte)0x90,62,4));
+
+
+
+    }
+
+
+    /**
+     * Returns true if byte read from ScreenMemory[x +1,x+2...x+7][y] are equal to b.
+     * If x>=64, it returns to 0.
+     */
+    private boolean isSameByte(byte b,int x, int y){
+        boolean theSame = true;
+        for(int i = 0; i <=7; i++){
+
+            theSame = theSame && (isBitSet(b,7-i) == ScreenMemory.pixels[(x+i)%64][y]);
+        }
+        return theSame;
+    }
+
+    private  Boolean isBitSet(byte b, int bit)
+    {
+        return (b & (1 << bit)) != 0;
+    }
 
 
 }
