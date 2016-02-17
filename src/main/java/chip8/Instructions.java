@@ -1,11 +1,18 @@
 package chip8;
 
+import java.util.Random;
+
+
 /**
  * Created by ismaro3 on 17/02/16.
  */
 public class Instructions {
 
+    public static boolean randomEnabled = true;
 
+
+
+    private static Random random = new Random();
     /**
      * 00EE - RET
      * Return from a subroutine.
@@ -292,6 +299,65 @@ public class Instructions {
 
         if(RegisterBank.V[x]!=RegisterBank.V[y]){
             RegisterBank.PC = (short)(RegisterBank.PC + (short)0x0002);
+        }
+
+    }
+
+    /**
+     * Annn - LD I, addr
+     * Set I = nnn.
+     * The value of register I is set to nnn.
+     */
+    public static void loadAddressOnI(short address){
+
+        RegisterBank.I = address;
+
+    }
+
+
+    /**
+     * Bnnn - JP V0, addr
+     * Jump to location nnn + V0.
+     *
+     * The program counter is set to nnn plus the value of V0.
+     *
+     */
+    public static void jpSum(short nnn){
+
+        int int_v0 = RegisterBank.V[0] & 0xff; //Unsigned
+        int int_nnn = nnn & 0xfff; //unsigned
+
+
+       RegisterBank.PC = (short) (int_v0 + int_nnn);
+    }
+
+
+    /**
+     * Cxkk - RND Vx, byte
+     * Set Vx = random byte AND kk.
+     *
+     * The interpreter generates a random number from 0 to 255, which is then ANDed with the value kk.
+     * The results are stored in Vx. See instruction 8xy2 for more information on AND.
+     */
+    public static void rnd(byte x, byte kk){
+
+        byte randomByte = randomByte();
+        RegisterBank.V[x] = (byte)(randomByte & kk);
+    }
+
+
+
+
+    /*
+    If randomEnabled, returns a random Byte.
+    Else, returns 0xBA.
+     */
+    private static byte randomByte(){
+        if(randomEnabled){
+            return (byte) random.nextInt(266);
+        }
+        else{
+            return (byte)0xBA;
         }
 
     }

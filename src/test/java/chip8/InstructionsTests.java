@@ -1,8 +1,8 @@
 package chip8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 /**
  * Created by ismaro3 on 17/02/16.
  */
@@ -515,7 +515,62 @@ public class InstructionsTests {
     }
 
 
+    /**
+     * Annn - LD I, addr
+     * Set I = nnn.
+     * The value of register I is set to nnn.
+     */
+    @Test
+    public void loadAddressOnI(){
 
+        Instructions.loadAddressOnI((short)0x0BEB);
+
+        assertEquals((short)0x0BEB,RegisterBank.I);
+
+    }
+
+
+
+    /**
+     * Bnnn - JP V0, addr
+     * Jump to location nnn + V0.
+     *
+     * The program counter is set to nnn plus the value of V0.
+     *
+     */
+    @Test
+     public void jpSum(){
+
+         short nnn = 0x0D00;
+         RegisterBank.V[0] = (byte) 0xDD;
+
+         Instructions.jpSum(nnn);
+
+         assertEquals((short)0x0DDD,RegisterBank.PC);
+     }
+
+
+    /**
+     * Cxkk - RND Vx, byte
+     * Set Vx = random byte AND kk.
+     *
+     * The interpreter generates a random number from 0 to 255, which is then ANDed with the value kk.
+     * The results are stored in Vx. See instruction 8xy2 for more information on AND.
+     */
+    public void rnd(){
+
+        Instructions.randomEnabled = false;
+        byte kk = (byte)0xDE;
+
+        //0xBA and 0xDE = 0x9A. Use V0 to store
+        Instructions.rnd((byte)0x0,kk);
+
+
+        Instructions.randomEnabled = false;
+        assertEquals((byte)0x9A,RegisterBank.V[0]);
+
+
+    }
 
 
 

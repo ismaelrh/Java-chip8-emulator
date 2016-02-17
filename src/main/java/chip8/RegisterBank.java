@@ -9,7 +9,7 @@ public class RegisterBank {
     public static byte[] V = new byte[16];
 
     //I register, a 16-bit register used for storing memory addresses.
-    public static byte I = 0x00;
+    public static short I = 0x0000;
 
     //PC, program counter. 16 bit (2 byte)
     public static short PC = 0x0000;
