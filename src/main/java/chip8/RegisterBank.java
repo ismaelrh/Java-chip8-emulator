@@ -6,31 +6,37 @@ package chip8;
 public class RegisterBank {
 
     //16 General Purpose registers (8 bits each). From V0 to VF.
-    public static byte[] V = new byte[16];
+    public  byte[] V;
 
     //I register, a 16-bit register used for storing memory addresses.
-    public static short I = 0x0000;
+    public  short I;
 
     //PC, program counter. 16 bit (2 byte)
-    public static short PC = 0x0000;
+    public  short PC;
 
     //SP, stack pointer. 8 bit (1 byte)
-    public static byte SP = 0x00; //todo: Where does the stack start
+    public  byte SP;
 
     //DT, delay timer. 8 bit (1 byte)
-    public static byte DT = 0x00;
+    public  byte DT;
 
 
     //ST, sound timer. 8 bit (1 byte)
-    public static byte ST = 0x00;
+    public  byte ST ;
+
+
+    public RegisterBank(){
+        V = new byte[16];
+        I = 0x0000;
+        PC = 0x0200;
+        SP = 0x00;
+        DT = 0x00;
+        ST = 0x00;
+    }
 
 
 
-    //todo: specific purpose registers and PC,SP
-
-
-
-    public static void printRegisters(){
+    public  void printRegisters(){
 
         //Print General Purpose registers
         for(int i = 0; i < 16; i++){
@@ -43,6 +49,6 @@ public class RegisterBank {
     }
 
     public static void main(String[] args){
-        RegisterBank.printRegisters();
+
     }
 }

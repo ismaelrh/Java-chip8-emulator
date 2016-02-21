@@ -2,8 +2,6 @@ package chip8;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 public class Main {
 
@@ -13,21 +11,21 @@ public class Main {
     private Panel controlPanel;
 
 
-
-
     public static void main(String[] args) {
-        System.out.println("Main not implemented yet!");
-        prepareGUI();
+        //System.out.println("Main not implemented yet!");
+        //prepareGUI();
+        try{
+            Chip8 chip8 = new Chip8(500);
+            chip8.loadGame("WIPEOFF");
+            chip8.startEmulationLoop();
+        }
+        catch(Exception ex){
+            ex.printStackTrace();
+        }
+
     }
 
-    private static void prepareGUI(){
-        JFrame f = new JFrame("CHIP-8 emulator (ismaro3)");
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.add(new Screen());
-        f.pack();
-        f.setVisible(true);
 
-    }
 
 
 
