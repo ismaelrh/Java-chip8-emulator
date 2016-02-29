@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/ismaro3/Java-chip8-emulator.svg?branch=master)](https://travis-ci.org/ismaro3/Java-chip8-emulator)
-# Chip-8 emulator for Java
+# Java Chip-8 Emulator
 
 [Chip-8](https://en.wikipedia.org/wiki/CHIP-8) emulator written in Java, with the target of learning how emulators work.
 It has a comprehensive set of tests (every CPU instruction) as well as a lot of comments so it is easily understandable.
