@@ -1,23 +1,24 @@
 package chip8;
 
-import javax.swing.*;
-import java.awt.*;
 
+/**
+ * @author Ismael Rodríguez, ismaro3
+ *
+ * Main class, launches the emulator at the specified frequency and rom.
+ * Only chip-8 system is implemented (Not chip-48 or anything else).
+ */
 public class Main {
-
-    private Frame mainFrame;
-    private Label headerLabel;
-    private Label statusLabel;
-    private Panel controlPanel;
 
 
     public static void main(String[] args) {
-        //System.out.println("Main not implemented yet!");
-        //prepareGUI();
+
+        int frequencyInHz = 500;
+        String rom = "INVADERS";
+
         try{
-            Chip8 chip8 = new Chip8(500);
-            chip8.loadGame("WIPEOFF");
-            chip8.startEmulationLoop();
+            Chip8 chip8 = new Chip8(frequencyInHz); //500Hz
+            chip8.loadGame(rom);                    //Rom to load
+            chip8.startEmulationLoop();             //Start! :)
         }
         catch(Exception ex){
             ex.printStackTrace();

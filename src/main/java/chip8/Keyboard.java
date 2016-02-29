@@ -4,6 +4,10 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 
 /**
+ * @author Ismael Rodríguez, ismaro3
+ *
+ * Class that manages the keyboard input.
+ *
  * ORIGINAL:
  * 1 2 3 C
  * 4 5 6 D
@@ -18,7 +22,7 @@ import java.awt.event.KeyEvent;
  */
 public class Keyboard {
 
-    public boolean[] pressed;
+    public boolean[] pressed; //Array that stores the 16 posible pressed keys
     public int numberOfPressedKeys = 0;
     byte lastPressed;
 
@@ -27,6 +31,27 @@ public class Keyboard {
         prepareInput();
     }
 
+    /**
+     * Blocks all execution until a key if pressed.
+     * Then, it returns the pressed key byte.
+     */
+    public byte waitForKey(){
+        while(numberOfPressedKeys==0){
+            try {
+                Thread.sleep(0);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return lastPressed;
+    }
+
+    /**
+     * Prepares the input, registering the listeners.
+     * When a key is pressed and it is inside the system range, its position in "pressed" is set to true
+     * and numberOfPressedKeys is incremented. If it is released, its position is set to false and numberOfPressedKeys
+     * is decremented.
+     */
     private void prepareInput(){
 
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
@@ -56,7 +81,11 @@ public class Keyboard {
     }
 
 
-    //Returns true if correct key pressed
+    /**
+     * Returns true if a correct key has been pressed.
+     * Also, sets proper position in pressed to true or false (if pressed or released)
+     * and lastPressed to the last pressed key.
+     */
     private boolean setKey(boolean value, int keycode){
 
         switch(keycode){
@@ -133,14 +162,6 @@ public class Keyboard {
     }
 
 
-    public byte waitForKey(){
-        while(numberOfPressedKeys==0){
-            try {
-                Thread.sleep(0);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        return lastPressed;
-    }
+
+
 }

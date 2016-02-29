@@ -1,7 +1,9 @@
 package chip8;
 
 /**
- * Created by ismaro3 on 18/02/16.
+ * @author Ismael Rodríguez, ismaro3
+ * Control unit of the CPU.
+ * It manages fetch, decode and execute phase.
  */
 public class ControlUnit {
 
@@ -9,8 +11,8 @@ public class ControlUnit {
     private Memory memory;
     private ProcessingUnit pu;
 
-
     private short currentInstruction;
+
 
     public ControlUnit(RegisterBank registerBank, Memory memory, Keyboard keyboard){
         this.registerBank = registerBank;
@@ -19,7 +21,9 @@ public class ControlUnit {
     }
 
 
-    //Fetch current instruction from memory and returns it
+    /**
+     * Fetchs current instruction from memory and stores it in currentInstruction.
+     */
     public void fetch(){
         short pc = registerBank.PC;
 
@@ -32,7 +36,9 @@ public class ControlUnit {
     }
 
 
-    //todo: fill
+    /**
+     * Decodes the current instruction, extracting the operation code and its operands, and then executes it.
+     */
     public void decodeAndExecute(){
 
         //System.out.printf("Current PC: 0x%04X - Next PC: 0x%04X - INST: 0x%04X\n",registerBank.PC-2,registerBank.PC,inst);
@@ -224,23 +230,18 @@ public class ControlUnit {
     }
 
 
+    /**
+     * Increments PC by 2 (Each instruction is 2-byte log)
+     */
     public void incrementPC(){
         registerBank.PC = (short) (registerBank.PC + 0x2);
-    }
-
-    public static void main(String[] args){
-
-        short inst = 0x5350;
-        System.out.println(matches(inst,5,3,5,0));
-
-
     }
 
 
     /**
      * Returns the nibble in position <position> starting from lower.
      */
-    public  static byte extractNibble(short instruction, int position){
+    private  byte extractNibble(short instruction, int position){
 
         instruction = (short)(instruction >> position*4);
 
@@ -248,7 +249,12 @@ public class ControlUnit {
         return (byte)(instruction & 0x000F);
     }
 
-    public static boolean matches(short inst,Integer three, Integer two, Integer one, Integer zero){
+
+    /**
+     * Returns true if instruction inst is composed by bytes (three,two,one,zero).
+     * False otherwise.
+     */
+    private  boolean matches(short inst,Integer three, Integer two, Integer one, Integer zero){
 
         boolean matches = true;
         if(three!=null){
@@ -268,26 +274,28 @@ public class ControlUnit {
 
     }
 
-    public short extractNNN(short instruction){
-        return (short)(instruction & 0xFFF); //nnn are the 12 lowest bits.
+    //nnn are the 12 lowest bits (oNNN)
+    private short extractNNN(short instruction){
+        return (short)(instruction & 0xFFF);
     }
 
-    public byte extractKK(short instruction){
-        return (byte)(instruction & 0xFF); //kk are the 8 lowest bits.
+    //kk are the 8 lowest bits (ookk)
+    private byte extractKK(short instruction){
+        return (byte)(instruction & 0xFF);
     }
 
     //x are the oXoo
-    public byte extractX(short instruction){
+    private byte extractX(short instruction){
         return (byte) ( (instruction & 0x0F00) >>> 8);
     }
 
     //y are the ooYo
-    public byte extractY(short instruction){
+    private byte extractY(short instruction){
         return (byte) ( (instruction & 0x00F0) >>> 4);
     }
 
     //n are the ooNo
-    public byte extractN(short instruction){
+    private byte extractN(short instruction){
         return (byte) (instruction & 0x00F);
     }
 

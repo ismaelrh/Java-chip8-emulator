@@ -1,7 +1,8 @@
 package chip8;
 
 /**
- * Created by ismaro3 on 16/02/16.
+ * @author Ismael Rodríguez, ismaro3
+ * Implements register Bank.
  */
 public class RegisterBank {
 
@@ -20,7 +21,6 @@ public class RegisterBank {
     //DT, delay timer. 8 bit (1 byte)
     public  byte DT;
 
-
     //ST, sound timer. 8 bit (1 byte)
     public  byte ST ;
 
@@ -35,7 +35,9 @@ public class RegisterBank {
     }
 
 
-
+    /**
+     * Prints status of registers via stdout.
+     */
     public  void printRegisters(){
 
         //Print General Purpose registers
@@ -45,10 +47,14 @@ public class RegisterBank {
 
         System.out.println(String.format("I:       %01X",I));
 
+        System.out.println(String.format("SP:      %01X",SP));
+
+        System.out.println(String.format("DT:      %01X",DT));
+
+        System.out.println(String.format("ST:      %01X",ST));
+
 
     }
 
-    public static void main(String[] args){
 
-    }
 }

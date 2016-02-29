@@ -1,21 +1,19 @@
 package chip8;
 
-import org.junit.Test;
 
 import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
-
 
 /**
- * Created by ismaro3 on 17/02/16.
+ * @author Ismael Rodríguez, ismaro3
+ * Processing unit of the CPU.
+ * It implements all the CPU ops.
  */
 public class ProcessingUnit {
 
+    //Random management. It can be disabled for testing purposes.
     public  boolean randomEnabled = true;
-
     private  Random random ;
-
 
     private Memory memory;
     private RegisterBank registerBank;
@@ -616,6 +614,10 @@ public class ProcessingUnit {
     }
 
 
+    /**
+     * Returns true if bit n (starting from less significant) is set on byte b.
+     * False otherwise.
+     */
     private  Boolean isBitSet(byte b, int bit)
     {
         return (b & (1 << bit)) != 0;

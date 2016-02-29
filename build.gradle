@@ -3,14 +3,33 @@ repositories {
     mavenCentral()
 }
 
-apply plugin: 'idea'
-//and standard one
-apply plugin: 'java'
 
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = "chip8.Main"
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+    dependsOn 'cleanTest'
+}
 
 
 dependencies {
-
     compile group: 'com.google.guava', name: 'guava', version: '12.0'
     testCompile 'junit:junit:4.10'
+}
+
+
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/java/chip8'
+            srcDir 'test/java/chip8'
+        }
+    }
 }

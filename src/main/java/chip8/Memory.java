@@ -1,5 +1,8 @@
 package chip8;
 /**
+ * @author Ismael Rodríguez, ismaro3
+ *
+ * Class that implements main memory, stack, screen memory (pixels) and drawFlag.
  * 4096 Bytes of memory.
  * Each address is 16bit.
  */
@@ -40,20 +43,19 @@ public class Memory {
     private static byte[] sprite_F = new byte[]{(byte)0xF0,(byte)0x80,(byte)0xF0,(byte)0x80,(byte)0x80};
 
 
-
+    /**
+     * Creates a new memory object and loads default sprites in it.
+     */
     public Memory(){
         this.memory = new byte[4096];
         this.stack = new short[16];
         this.pixels = new boolean[width][height];
-
         loadDefaultSpritesOnMemory();
 
     }
 
     /**
-     * Returns the content of a memory address
-     * @param address 2 byte
-     * @return 1 byte
+     * Returns the content of a memory address.
      */
     public  byte get(short address){
         if(address>0xFFF){
@@ -66,9 +68,7 @@ public class Memory {
     }
 
     /**
-     * Sets the content of one byte of memory
-     * @param address 2 byte
-     * @param content 1 byte
+     * Sets the content of one byte of memory.
      */
     public  void set(short address, byte content){
         if(address>0xFFF){
@@ -80,6 +80,9 @@ public class Memory {
     }
 
 
+    /**
+     * Prints memory from startAddress to endAddress via stdout.
+     */
     public  void printMemory(short startAddress,short endAddress){
         short currentAddress = startAddress;
         while(currentAddress<=endAddress){
@@ -89,6 +92,9 @@ public class Memory {
 
     }
 
+    /**
+     * Loads default sprites on memory.
+     */
     private  void loadDefaultSpritesOnMemory(){
         for(byte i = 0; i < sprite_0.length;i++){
             set((short)(hexadecimalSpritesStartAddress + i),sprite_0[i]);
@@ -141,6 +147,9 @@ public class Memory {
 
     }
 
+    /**
+     * Prints the screen memory via stdout.
+     */
     public  void printScreen(){
         for(int x= 0; x < width; x++){
             System.out.print("-");
@@ -167,19 +176,6 @@ public class Memory {
             System.out.print("-");
         }
     }
-
-
-    public static void main(String[] args){
-    }
-
-
-
-
-
-
-
-
-
 
 
 }
